@@ -2,36 +2,53 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Sayan DevOps - Jenkins CI/CD Project</title>
+<title>Sayan DevOps Project</title>
 
 <style>
 body {
-    font-family: Arial;
     margin: 0;
+    font-family: 'Segoe UI', sans-serif;
     background: #0f172a;
     color: #e2e8f0;
+    line-height: 1.6;
 }
+
 header {
-    background: #020617;
-    padding: 30px;
     text-align: center;
+    padding: 40px;
+    background: #020617;
 }
+
 h1 { color: #38bdf8; }
 h2 { color: #22c55e; margin-top: 40px; }
-section {
-    padding: 25px;
-    border-bottom: 1px solid #1e293b;
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 20px;
 }
+
+.card {
+    background: #1e293b;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 12px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: 0.6s;
+}
+
+.card.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 pre {
     background: #020617;
     padding: 15px;
     border-radius: 10px;
     overflow-x: auto;
     color: #facc15;
-}
-.container {
-    max-width: 1100px;
-    margin: auto;
 }
 </style>
 </head>
@@ -45,114 +62,80 @@ pre {
 
 <div class="container">
 
-<!-- OVERVIEW -->
-<section>
+<div class="card">
 <h2>📌 Project Objective</h2>
 <p>
-Build a complete CI/CD pipeline using Jenkins Master-Agent setup on AWS EC2.
-Automate the process of fetching code from GitHub, building Docker images,
-pushing them to Docker Hub, and deploying the application.
+To build a complete CI/CD pipeline using Jenkins Master-Agent setup on AWS EC2.
+Automate code build, Docker image creation, push to Docker Hub and deployment.
 </p>
-</section>
+</div>
 
-<!-- ARCHITECTURE -->
-<section>
+<div class="card">
 <h2>🏗️ Architecture</h2>
 <pre>
-Developer → GitHub → Jenkins Master → Jenkins Agent → Docker Build
-→ Docker Hub → EC2 Deployment → Browser Access
+GitHub → Jenkins Master → Jenkins Agent → Docker → Docker Hub → Deployment
 </pre>
-</section>
+</div>
 
-<!-- TOOLS -->
-<section>
-<h2>🛠️ Tools & Technologies</h2>
+<div class="card">
+<h2>🛠️ Tools Used</h2>
 <ul>
-<li>AWS EC2 (minimum 4GB)</li>
+<li>AWS EC2 (Free Tier)</li>
 <li>Jenkins (Master-Agent)</li>
 <li>Docker</li>
 <li>GitHub</li>
-<li>Linux (Ubuntu)</li>
+<li>Ubuntu Linux</li>
 </ul>
-</section>
+</div>
 
-<!-- EC2 SETUP -->
-<section>
-<h2>☁️ EC2 Setup</h2>
+<div class="card">
+<h2>⚙️ Step-by-Step Setup</h2>
+
+<h3>1. EC2 Setup</h3>
 <pre>
-Create 2 instances:
-1. Jenkins Master
-2. Jenkins Agent
+Create 2 EC2 instances:
+- Jenkins Master
+- Jenkins Agent
 
 Open Ports:
-22 → SSH
-8080 → Jenkins
-8081 → App
+22 (SSH)
+8080 (Jenkins)
+8081 (App)
 </pre>
-</section>
 
-<!-- JENKINS INSTALL -->
-<section>
-<h2>⚙️ Jenkins Installation</h2>
+<h3>2. Install Jenkins</h3>
 <pre>
 sudo apt update
 sudo apt install openjdk-17-jdk -y
-
 sudo apt install jenkins -y
 sudo systemctl start jenkins
-sudo systemctl enable jenkins
 </pre>
-</section>
 
-<!-- DOCKER INSTALL -->
-<section>
-<h2>🐳 Docker Setup</h2>
+<h3>3. Install Docker</h3>
 <pre>
 sudo apt install docker.io -y
-
 sudo usermod -aG docker ubuntu
 sudo usermod -aG docker jenkins
 </pre>
-</section>
 
-<!-- AGENT SETUP -->
-<section>
-<h2>🔗 Jenkins Agent Setup</h2>
+<h3>4. Setup Agent</h3>
 <pre>
-1. Add Node in Jenkins
-2. Use SSH connection
-3. Add PEM key in credentials
-
-Common Issue:
-Permission denied (publickey)
-
-Solution:
-Add correct private key in Jenkins credentials
+Add node in Jenkins
+Connect using SSH
+Add PEM key in credentials
 </pre>
-</section>
 
-<!-- GIT -->
-<section>
-<h2>📦 GitHub Integration</h2>
-<pre>
-git clone https://github.com/ray-sayan/static-website-demo.git
+</div>
 
-IMPORTANT:
-Use branch = main (not master)
-</pre>
-</section>
-
-<!-- DOCKERFILE -->
-<section>
+<div class="card">
 <h2>📄 Dockerfile</h2>
 <pre>
 FROM nginx:latest
 COPY . /usr/share/nginx/html
 </pre>
-</section>
+</div>
 
-<!-- PIPELINE -->
-<section>
+<div class="card">
 <h2>⚡ Jenkins Pipeline</h2>
 <pre>
 pipeline {
@@ -177,18 +160,6 @@ pipeline {
             }
         }
 
-        stage('Login') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'USER',
-                    passwordVariable: 'PASS'
-                )]) {
-                    sh 'echo $PASS | docker login -u $USER --password-stdin'
-                }
-            }
-        }
-
         stage('Push') {
             steps {
                 sh 'docker push $IMAGE'
@@ -197,96 +168,69 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sh '''
-                docker stop static || true
-                docker rm static || true
-                docker run -d -p 8081:80 --name static $IMAGE
-                '''
+                sh 'docker run -d -p 8081:80 $IMAGE'
             }
         }
     }
 }
 </pre>
-</section>
+</div>
 
-<!-- PROBLEMS -->
-<section>
-<h2>⚠️ Problems Faced & Solutions</h2>
+<div class="card">
+<h2>⚠️ Problems Faced & Fixes</h2>
 
-<h3>1. Jenkins Agent Not Connecting</h3>
-<pre>
-Error: Permission denied (publickey)
-
-Fix:
-Add PEM key in Jenkins credentials
-</pre>
+<h3>1. Agent Not Connected</h3>
+<p>Fixed by adding correct PEM key.</p>
 
 <h3>2. Known Hosts Error</h3>
 <pre>
 ssh-keyscan -H <agent-ip> >> ~/.ssh/known_hosts
 </pre>
 
-<h3>3. Git Clone Failed</h3>
-<pre>
-Error: Couldn't find revision
+<h3>3. Permission Denied</h3>
+<p>Fixed by adding SSH key in Jenkins credentials.</p>
 
-Fix:
-Use branch: main
-</pre>
+<h3>4. Git Branch Issue</h3>
+<p>Changed from master to main.</p>
 
-<h3>4. Docker Permission Error</h3>
-<pre>
-sudo usermod -aG docker jenkins
-sudo reboot
-</pre>
-
-<h3>5. Docker Push Failed</h3>
-<pre>
-Error: insufficient scope
-
-Fix:
-Use correct Docker token/password
-</pre>
-
-</section>
-
-<!-- COMMANDS -->
-<section>
-<h2>💻 Important Commands</h2>
-<pre>
-docker build -t myapp .
-docker push myapp
-docker run -d -p 8081:80 myapp
-
-docker ps
-docker logs static
-</pre>
-</section>
-
-<!-- RESULT -->
-<section>
-<h2>🎯 Final Output</h2>
-<ul>
-<li>CI/CD pipeline successfully implemented</li>
-<li>Code automatically deployed</li>
-<li>Docker image stored in Docker Hub</li>
-<li>Live website accessible</li>
-</ul>
-</section>
-
-<!-- INTERVIEW -->
-<section>
-<h2>💬 Explanation</h2>
-<p>
-I implemented a Jenkins CI/CD pipeline using a master-agent architecture on AWS EC2.
-The pipeline integrates with GitHub to pull code, builds a Docker image,
-pushes it to Docker Hub, and deploys the application on EC2.
-I also handled real-time issues like SSH authentication, Docker permissions,
-and Git branch configuration.
-</p>
-</section>
+<h3>5. Docker Push Error</h3>
+<p>Fixed by using correct Docker credentials/token.</p>
 
 </div>
+
+<div class="card">
+<h2>🎯 Final Output</h2>
+<ul>
+<li>CI/CD pipeline working</li>
+<li>Docker image pushed</li>
+<li>Website deployed on EC2</li>
+<li>Automation achieved</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>💬 Interview Answer</h2>
+<p>
+I built a CI/CD pipeline using Jenkins on AWS EC2 with a master-agent architecture.
+The pipeline integrates with GitHub, builds Docker images, pushes them to Docker Hub,
+and deploys them on EC2.
+</p>
+</div>
+
+</div>
+
+<script>
+const cards = document.querySelectorAll('.card');
+
+window.addEventListener('scroll', () => {
+    cards.forEach(card => {
+        const top = card.getBoundingClientRect().top;
+        if (top < window.innerHeight - 50) {
+            card.classList.add('show');
+        }
+    });
+});
+</script>
 
 </body>
 </html>
